@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Article Similarity Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        .main-title {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            line-height: 1.2;
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            color: #7f8c8d;
+            margin-bottom: 20px;
+        }
+        
+        .comparison-layout {
+            display: grid;
+            grid-template-columns: 1fr 300px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .article-panel {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+        }
+        
+        .article-header {
+            padding: 20px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+        
+        .source-name {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .article-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #34495e;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+        
+        .article-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .bias-label {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .bias-left { background: #e3f2fd; color: #1565c0; }
+        .bias-right { background: #fce4ec; color: #ad1457; }
+        .bias-center { background: #f3e5f5; color: #6a1b9a; }
+        .bias-center-left { background: #e8f5e8; color: #2e7d32; }
+        .bias-center-right { background: #fff3e0; color: #ef6c00; }
+        
+        .trust-score {
+            font-size: 0.9em;
+            font-weight: 600;
+            color: #27ae60;
+        }
+        
+        .article-content {
+            padding: 20px;
+        }
+        
+        .summary-section {
+            margin-bottom: 20px;
+        }
+        
+        .summary-label {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        
+        .summary-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        
+        .key-points {
+            margin-top: 20px;
+        }
+        
+        .key-points h4 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+        
+        .key-points ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .key-points li {
+            padding: 8px 0;
+            padding-left: 20px;
+            position: relative;
+            color: #34495e;
+            font-size: 0.9em;
+        }
+        
+        .key-points li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-weight: bold;
+        }
+        
+        .comparison-insights {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .insights-title {
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+        
+        .similarity-score-section {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .similarity-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        
+        .similarity-score {
+            font-size: 3em;
+            font-weight: 700;
+            color: #e74c3c;
+            margin-bottom: 5px;
+        }
+        
+        .similarity-description {
+            font-size: 0.85em;
+            color: #95a5a6;
+        }
+        
+        .narrative-difference {
+            margin-bottom: 20px;
+        }
+        
+        .narrative-title {
+            font-size: 0.95em;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .narrative-bar-container {
+            display: flex;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #ecf0f1;
+        }
+        
+        .narrative-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .challenges-bar {
+            background: #e74c3c;
+            flex: 1;
+        }
+        
+        .opportunities-bar {
+            background: #27ae60;
+            flex: 1;
+        }
+        
+        .shared-facts {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .shared-facts h4 {
+            font-size: 0.95em;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        
+        .shared-facts ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .shared-facts li {
+            padding: 6px 0;
+            font-size: 0.85em;
+            color: #34495e;
+            display: flex;
+            align-items: center;
+        }
+        
+        .fact-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        
+        .source1-only { background: #3498db; }
+        .source2-only { background: #e74c3c; }
+        .both-sources { background: #27ae60; }
+        
+        .pagination {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+        
+        .pagination a, .pagination span {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 8px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        
+        .pagination a {
+            background: #3498db;
+            color: white;
+            transition: background 0.3s ease;
+        }
+        
+        .pagination a:hover {
+            background: #2980b9;
+        }
+        
+        .pagination .disabled {
+            background: #ecf0f1;
+            color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .external-link {
+            color: #3498db;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        
+        .external-link:hover {
+            text-decoration: underline;
+        }
+        
+        @media (max-width: 1200px) {
+            .comparison-layout {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .comparison-insights {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .main-title {
+                font-size: 1.8em;
+            }
+            
+            .similarity-score {
+                font-size: 2.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Main Header -->
+        <div class="header">
+            <div class="main-title">{{ article1.title if article1.title|length < article2.title|length else article2.title }}</div>
+            <div class="subtitle">A comparison of two similar topics from different news perspectives.</div>
+        </div>
+
+        <!-- Main Comparison Layout -->
+        <div class="comparison-layout">
+            <!-- Article 1 Panel -->
+            <div class="article-panel">
+                <div class="article-header">
+                    <div class="source-name">{{ article1.source_name }}</div>
+                    <div class="article-title">{{ article1.title }}</div>
+                    <div class="article-meta">
+                        <div class="bias-label bias-{{ article1.bias.replace(' ', '-') }}">
+                            {{ article1.bias }}
+                        </div>
+                        <div class="trust-score">Trust: {{ article1.trust_score }}/5</div>
+                    </div>
+                </div>
+                
+                <div class="article-content">
+                    {% if article1.summary %}
+                    <div class="summary-section">
+                        <div class="summary-label">Summary</div>
+                        <div class="summary-text">{{ article1.summary }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="key-points">
+                        <h4>Key Points</h4>
+                        <ul>
+                            <li>Published: {{ article1.publication_date.strftime('%Y-%m-%d %H:%M') }}</li>
+                            <li>Country: {{ article1.country }}</li>
+                            <li>Bias: {{ article1.bias }}</li>
+                            {% if article1.content %}
+                            <li>Content length: {{ article1.content|length }} characters</li>
+                            {% endif %}
+                        </ul>
+                        <p style="margin-top: 15px;">
+                            <a href="{{ article1.url }}" target="_blank" class="external-link">Read Full Article →</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Insights Panel -->
+            <div class="comparison-insights">
+                <div class="insights-title">Comparison Insights</div>
+                
+                <div class="similarity-score-section">
+                    <div class="similarity-label">Similarity Score</div>
+                    <div class="similarity-score">{{ score }}%</div>
+                    <div class="similarity-description">Based on comparison of content and shared news themes</div>
+                </div>
+                
+                <div class="narrative-difference">
+                    <div class="narrative-title">Narrative Difference</div>
+                    <div class="narrative-bar-container">
+                        <div class="narrative-bar challenges-bar">
+                            Challenges & Criticism
+                        </div>
+                        <div class="narrative-bar opportunities-bar">
+                            Opportunities & Support
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="shared-facts">
+                    <h4>Shared & Unique Facts</h4>
+                    <ul>
+                        <li>
+                            <span class="fact-indicator source1-only"></span>
+                            {{ article1.source_name }} focus
+                        </li>
+                        <li>
+                            <span class="fact-indicator source2-only"></span>
+                            {{ article2.source_name }} focus
+                        </li>
+                        <li>
+                            <span class="fact-indicator both-sources"></span>
+                            Shared perspective
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Article 2 Panel -->
+            <div class="article-panel">
+                <div class="article-header">
+                    <div class="source-name">{{ article2.source_name }}</div>
+                    <div class="article-title">{{ article2.title }}</div>
+                    <div class="article-meta">
+                        <div class="bias-label bias-{{ article2.bias.replace(' ', '-') }}">
+                            {{ article2.bias }}
+                        </div>
+                        <div class="trust-score">Trust: {{ article2.trust_score }}/5</div>
+                    </div>
+                </div>
+                
+                <div class="article-content">
+                    {% if article2.summary %}
+                    <div class="summary-section">
+                        <div class="summary-label">Summary</div>
+                        <div class="summary-text">{{ article2.summary }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="key-points">
+                        <h4>Key Points</h4>
+                        <ul>
+                            <li>Published: {{ article2.publication_date.strftime('%Y-%m-%d %H:%M') }}</li>
+                            <li>Country: {{ article2.country }}</li>
+                            <li>Bias: {{ article2.bias }}</li>
+                            {% if article2.content %}
+                            <li>Content length: {{ article2.content|length }} characters</li>
+                            {% endif %}
+                        </ul>
+                        <p style="margin-top: 15px;">
+                            <a href="{{ article2.url }}" target="_blank" class="external-link">Read Full Article →</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if has_prev %}
+                <a href="?page={{ page - 1 }}">← Previous Comparison</a>
+            {% else %}
+                <span class="disabled">← Previous</span>
+            {% endif %}
+            
+            <span>Comparison {{ page }} of {{ total_pairs }}</span>
+            
+            {% if has_next %}
+                <a href="?page={{ page + 1 }}">Next Comparison →</a>
+            {% else %}
+                <span class="disabled">Next →</span>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
